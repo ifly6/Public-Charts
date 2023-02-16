@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Feb 16 13:08:08 2023
-
-@author: ifly6
+@author: Imperium Anglorum
 """
 import pandas as pd
 import numpy as np
@@ -111,31 +110,54 @@ plt.clf()
 sns.histplot(data=day_results, x='add_prop', bins=32) \
     .get_figure().savefig('plots/add_prop_hist.png', bbox_inches='tight')
 
-# run simple regression
-smf.ols('add_prop ~ res_diff + chamber', data=day_results) \
-    .fit(cov_type='HC3').summary()
+# run simple regressions
+smf.ols('add_prop ~ res_diff', data=day_results) \
+    .fit(cov_type='HC3').summary2()
 """
-                            OLS Regression Results
-==============================================================================
-Dep. Variable:               add_prop   R-squared:                       0.076
-Model:                            OLS   Adj. R-squared:                  0.074
-Method:                 Least Squares   F-statistic:                     30.41
-Date:                Thu, 16 Feb 2023   Prob (F-statistic):           1.68e-13
-Time:                        15:02:39   Log-Likelihood:                 2094.6
-No. Observations:                 894   AIC:                            -4183.
-Df Residuals:                     891   BIC:                            -4169.
-Df Model:                           2
-Covariance Type:                  HC3
-==============================================================================
-                      coef   std err         z     P>|z|     [0.025     0.975]
-------------------------------------------------------------------------------
-Intercept           0.1167     0.016     7.476     0.000      0.086      0.147
-res_diff[T.same]   -0.0342     0.016    -2.182     0.029     -0.065     -0.003
-chamber[T.SC]      -0.0112     0.002    -7.244     0.000     -0.014     -0.008
-==============================================================================
-Omnibus:                      129.223   Durbin-Watson:                   1.867
-Prob(Omnibus):                  0.000   Jarque-Bera (JB):              236.356
-Skew:                           0.885   Prob(JB):                     4.74e-52
-Kurtosis:                       4.792   Cond. No.                         19.0
-==============================================================================
+                  Results: Ordinary least squares
+===================================================================
+Model:              OLS              Adj. R-squared:     0.022
+Dependent Variable: add_prop         AIC:                -4135.3201
+Date:               2023-02-16 15:34 BIC:                -4125.7287
+No. Observations:   894              Log-Likelihood:     2069.7
+Df Model:           1                F-statistic:        4.222
+Df Residuals:       892              Prob (F-statistic): 0.0402
+R-squared:          0.023            Scale:              0.00057236
+-------------------------------------------------------------------
+                     Coef.  Std.Err.    z    P>|z|   [0.025  0.975]
+-------------------------------------------------------------------
+Intercept            0.1106   0.0161  6.8819 0.0000  0.0791  0.1421
+res_diff[T.same]    -0.0331   0.0161 -2.0546 0.0399 -0.0646 -0.0015
+-------------------------------------------------------------------
+Omnibus:              129.479       Durbin-Watson:          1.845
+Prob(Omnibus):        0.000         Jarque-Bera (JB):       233.478
+Skew:                 0.893         Prob(JB):               0.000
+Kurtosis:             4.755         Condition No.:          18
+===================================================================
+"""
+
+smf.ols('add_prop ~ res_diff + chamber', data=day_results) \
+    .fit(cov_type='HC3').summary2()
+"""
+                  Results: Ordinary least squares
+===================================================================
+Model:              OLS              Adj. R-squared:     0.074
+Dependent Variable: add_prop         AIC:                -4183.2492
+Date:               2023-02-16 15:34 BIC:                -4168.8621
+No. Observations:   894              Log-Likelihood:     2094.6
+Df Model:           2                F-statistic:        30.41
+Df Residuals:       891              Prob (F-statistic): 1.68e-13
+R-squared:          0.076            Scale:              0.00054187
+-------------------------------------------------------------------
+                     Coef.  Std.Err.    z    P>|z|   [0.025  0.975]
+-------------------------------------------------------------------
+Intercept            0.1167   0.0156  7.4759 0.0000  0.0861  0.1473
+res_diff[T.same]    -0.0342   0.0157 -2.1816 0.0291 -0.0649 -0.0035
+chamber[T.SC]       -0.0112   0.0015 -7.2440 0.0000 -0.0142 -0.0082
+-------------------------------------------------------------------
+Omnibus:              129.223       Durbin-Watson:          1.867
+Prob(Omnibus):        0.000         Jarque-Bera (JB):       236.356
+Skew:                 0.885         Prob(JB):               0.000
+Kurtosis:             4.792         Condition No.:          19
+===================================================================
 """
