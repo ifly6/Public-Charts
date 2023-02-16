@@ -12,7 +12,9 @@ import statsmodels.formula.api as smf
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# load
+# ---------
+# load data
+# ---------
 
 rsltn = pd.read_csv(
     'data/all_resolution_data_20230216.csv.xz',
@@ -34,7 +36,7 @@ votes['_day'] = (votes['date'] - votes['_dst']).dt.days
 # CONSTRUCT DATA IN TWO DATA SETS
 # -------------------------------
 
-# find last observation; select full vote series only
+# find last observation; select full vote series only; gen vars
 last = votes.groupby('resolution_id').last()
 votes = votes[votes['resolution_id'].isin(last.query('_day == 4').index)]
 
@@ -43,14 +45,16 @@ d4['_tv4'] = d4[['votes_for', 'votes_against']].sum(axis=1)
 d4['_rs4'] = np.where(d4['votes_for'] > d4['votes_against'], 'pass', 'fail')
 
 # construct the day before; create columns and select minimum difference
+# get final
 votes['_final'] = votes['resolution_id'].map(d4['time'])
 
-# final t MinuS 1
+# final - 1 day : (Final T MinuS 1)
 votes['_ftms1'] = votes['_final'] - pd.offsets.Day(1)
 
-# final t Minus 1 difference
+# convert to differences : final t Minus 1 difference
 votes['_ftm1d'] = abs(votes['_ftms1'] - votes['time'])
 
+# select minimum difference and gen vars
 d1bf = votes.sort_values('_ftm1d').groupby('resolution_id').first()
 d3 = d1bf[['time', '_ftm1d', 'votes_for', 'votes_against']].copy()
 d3['_tv3'] = d3[['votes_for', 'votes_against']].sum(axis=1)
