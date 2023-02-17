@@ -19,12 +19,10 @@ rsltn = pd.read_csv(
     'data/all_resolution_data_20230216.csv.xz',
     parse_dates=['resolution_date'])
 votes = pd.read_csv(
-    'data/all_vote_data_20230216.csv.xz',
-    parse_dates=['time'])
+    'data/all_vote_data_20230216.csv.xz', parse_dates=['time'])
 
-votes = votes.merge(
-    rsltn, left_on='resolution_id', right_on='id',
-    how='left', validate='m:1')
+votes = votes.merge(rsltn, left_on='resolution_id', right_on='id', how='left',
+                    validate='m:1')
 
 votes['date'] = votes['time'].dt.round('D')
 votes['_dst'] = votes['resolution_id'].map(
@@ -94,7 +92,7 @@ day_results['add_prop'].describe()
 
 pd.concat(
     [day_results['res_diff'].value_counts(),
-      day_results['res_diff'].value_counts(normalize=True)],
+     day_results['res_diff'].value_counts(normalize=True)],
     axis=1)
 # ---
 #       res_diff  res_diff
