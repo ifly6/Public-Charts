@@ -5,10 +5,12 @@ Created on Thu Apr 13 21:48:55 2023
 
 @author: ifly6
 """
+import itertools
+
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import ruptures as rpt
+import matplotlib.pyplot as plt
 
 # n_bkps = 1  # number of breakpoints; want 5+
 
@@ -17,13 +19,15 @@ data = pd.read_csv('RGDPMPUKA.csv', parse_dates=['DATE'])
 data['DATE'] = data['DATE'] - pd.offsets.Day(1)
 data.set_index('DATE', inplace=True)
 
-for n_bkps in [1, 3, 5, 7]:
-
+for n_bkps, the_model in itertools.product(
+        [1, 3, 5, 7],
+        ['l2', 'rbf']
+):
     # detection
     # l1 = median
     # l2 = mean
     # rbf = kernel mean change
-    algo = rpt.Dynp(model='rbf').fit(data['RGDPMPUKA_PC1'].values)
+    algo = rpt.Dynp(model=the_model).fit(data['RGDPMPUKA_PC1'].values)
     result = algo.predict(n_bkps=n_bkps)
 
     # display
@@ -58,5 +62,5 @@ for n_bkps in [1, 3, 5, 7]:
 
     ax.set_title(
         f'Structural breaks ({n_bkps} per ruptures) in UK real GDP growth data')
-    f.savefig(f'uk gdp growth structural breaks n{n_bkps}.jpg',
+    f.savefig(f'uk gdp growth structural breaks {the_model} n{n_bkps}.jpg',
               bbox_inches='tight')
