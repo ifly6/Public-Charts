@@ -70,4 +70,5 @@ ax.set_axis_off()
 ax.set_ylim(*(1e6 * np.array([3.9, 5.5])))
 ax.set_xlim(*(1e6 * np.array([2, 5.3])))
 
-f.savefig('ante_first_mith_war__nolabels.svg', bbox_inches='tight', pad_inches=0)
+f.savefig(
+    'charts/ante_first_mith_war.svg', bbox_inches='tight', pad_inches=0)
