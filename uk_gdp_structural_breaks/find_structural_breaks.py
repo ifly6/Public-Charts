@@ -44,8 +44,11 @@ for i in range(len(result)):
 for index, i in enumerate(np.array(result)):
     tb = -1 if index % 2 == 0 else 1
     y = str(i + data.index.min().year)
-    ax.text(i + 2, 20 * tb, y, va='center')
+    t = ax.text(i, 20 * tb, y, va='center', ha='center', fontsize=8)
+    t.set_bbox(dict(facecolor='white', alpha=1, edgecolor='black'))
 
 ax.set_ylim(-22, 22)
+# ax.set_xlim(0, len(data))  # don't use; screws up labels
+
 ax.set_title('Structural breaks (per ruptures) in UK GDP growth data')
 f.savefig('uk gdp growth structural breaks.svg', bbox_inches='tight')
