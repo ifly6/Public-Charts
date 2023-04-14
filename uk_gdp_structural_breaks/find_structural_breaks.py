@@ -50,5 +50,5 @@ for index, i in enumerate(np.array(result)):
 ax.set_ylim(-22, 22)
 # ax.set_xlim(0, len(data))  # don't use; screws up labels
 
-ax.set_title('Structural breaks (per ruptures) in UK GDP growth data')
+ax.set_title('Structural breaks (per ruptures) in UK real GDP growth data')
 f.savefig('uk gdp growth structural breaks.svg', bbox_inches='tight')
