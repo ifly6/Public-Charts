@@ -1,0 +1,13 @@
+# java
+*.jar
+*.class
+
+# python
+*.py[com]
+
+# ms office
+~$*
+*.doc
+*.docx
+*.xls
+*.xlsx
