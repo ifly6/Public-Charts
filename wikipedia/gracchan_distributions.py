@@ -3,11 +3,16 @@
 Created on Wed Mar 15 02:44:21 2023
 @author: ifly6
 """
+from os.path import expanduser
+
 import numpy as np
 import geopandas as gpd
 
 import matplotlib.pyplot as plt
 import contextily as cx
+
+
+TILES_PATH = expanduser(r"~\Documents\GIS map tiles\NE2_HR_LC_SR_W_DR\NE2_HR_LC_SR_W_DR.tif")
 
 
 def get_coordinates(point):
@@ -52,8 +57,9 @@ for i, r in gracch_cities.iterrows():
 
 cx.add_basemap(
     ax, crs=gracch_distri.crs.to_string(), source=cx.providers.Stamen.TerrainBackground,
-    reset_extent=False, attribution=False)
+    attribution=False)
 ax.margins(0)
 ax.set_axis_off()
 
-f.savefig('roselaar_gracchan_land.svg', bbox_inches='tight', pad_inches=0)
+f.savefig(
+    'charts/roselaar_gracchan_land.svg', bbox_inches='tight', pad_inches=0)

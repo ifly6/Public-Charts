@@ -4,12 +4,16 @@ Created on Wed Mar 15 19:05:23 2023
 
 @author: ifly6
 """
+from os.path import expanduser
+
 import numpy as np
 import pandas as pd
 import geopandas as gpd
 
 import matplotlib.pyplot as plt
 import contextily as cx
+
+TILES_PATH = expanduser(r"~\Documents\GIS map tiles\NE2_HR_LC_SR_W_DR\NE2_HR_LC_SR_W_DR.tif")
 
 
 def get_coordinates(point):
@@ -71,13 +75,17 @@ for i, r in sw_cities.iterrows():
         xy=(x, y), xytext=text_loc, textcoords='offset points',
         ha='right' if r['loc'].endswith('l') else 'left')
 
-cx.add_basemap(
-    ax, crs=romans.crs.to_string(), source=cx.providers.Stamen.TerrainBackground,
-    reset_extent=False, attribution=False, zoom=9)
 ax.margins(0)
-
 ax.set_axis_off()
-# ax.set_xlim(*(1e6 * np.array([1.1, 2.1])))
-# ax.set_ylim(*(1e6 * np.array([4.5, 5.5])))
 
-f.savefig('social_war_map.svg', bbox_inches='tight', pad_inches=0)
+ax.set_xlim(*(1e6 * np.array([1.1, 2.1])))
+ax.set_ylim(*(1e6 * np.array([4.5, 5.5])))
+
+cx.add_basemap(
+    ax, crs=romans.crs.to_string(),
+    source=cx.providers.Stamen.TerrainBackground,
+    # source=TILES_PATH,
+    attribution=False)
+
+f.savefig(
+    'charts/social_war_map.svg', bbox_inches='tight', pad_inches=0)
