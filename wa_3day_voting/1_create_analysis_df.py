@@ -7,6 +7,8 @@ Created on Thu Feb 16 13:08:08 2023
 """
 import pandas as pd
 import numpy as np
+
+import statsmodels.formula.api as smf
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -68,6 +70,13 @@ day_results['res_diff'] = np.where(
     day_results['_rs4'] == day_results['_rs3'],
     'same', 'diff')
 
+day_results = day_results.join(
+    rsltn.set_index('id')[['title', 'chamber', 'resolution_date']])
+
+day_results['year'] = day_results['resolution_date'].dt.year
+by_year = day_results.groupby('year')['add_prop'].describe().T \
+    .drop(columns=[2014])
+
 # day_results['add_prop'].describe()
 # Out[250]:
 # count    894.000000
@@ -80,11 +89,14 @@ day_results['res_diff'] = np.where(
 # max        0.180737
 # Name: add_prop, dtype: float64
 
-# day_results['res_diff'].value_counts()
-# Out[251]:
-# same    883
-# diff     11
-# Name: res_diff, dtype: int64
+# pd.concat(
+#     [day_results['res_diff'].value_counts(),
+#       day_results['res_diff'].value_counts(normalize=True)],
+#     axis=1)
+# Out[256]:
+#       res_diff  res_diff
+# same       883  0.987696
+# diff        11  0.012304
 
 sns.set_style('whitegrid')
 
@@ -95,3 +107,31 @@ plt.clf()
 sns.histplot(data=day_results, x='add_prop', bins=32) \
     .get_figure().savefig('plots/add_prop_hist.png', bbox_inches='tight')
 
+# run simple regression
+smf.ols('add_prop ~ res_diff + chamber', data=day_results) \
+    .fit(cov_type='HC3').summary()
+"""
+                            OLS Regression Results
+==============================================================================
+Dep. Variable:               add_prop   R-squared:                       0.076
+Model:                            OLS   Adj. R-squared:                  0.074
+Method:                 Least Squares   F-statistic:                     30.41
+Date:                Thu, 16 Feb 2023   Prob (F-statistic):           1.68e-13
+Time:                        15:02:39   Log-Likelihood:                 2094.6
+No. Observations:                 894   AIC:                            -4183.
+Df Residuals:                     891   BIC:                            -4169.
+Df Model:                           2
+Covariance Type:                  HC3
+==============================================================================
+                      coef   std err         z     P>|z|     [0.025     0.975]
+------------------------------------------------------------------------------
+Intercept           0.1167     0.016     7.476     0.000      0.086      0.147
+res_diff[T.same]   -0.0342     0.016    -2.182     0.029     -0.065     -0.003
+chamber[T.SC]      -0.0112     0.002    -7.244     0.000     -0.014     -0.008
+==============================================================================
+Omnibus:                      129.223   Durbin-Watson:                   1.867
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              236.356
+Skew:                           0.885   Prob(JB):                     4.74e-52
+Kurtosis:                       4.792   Cond. No.                         19.0
+==============================================================================
+"""
