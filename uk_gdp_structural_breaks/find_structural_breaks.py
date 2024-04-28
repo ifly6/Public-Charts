@@ -5,20 +5,47 @@ Created on Thu Apr 13 21:48:55 2023
 
 @author: ifly6
 """
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import ruptures as rpt
 
-n_bkps = 5  # number of breakpoints; want 5 to find the great depression
-data = pd.read_csv('RGDPMPUKA.csv', parse_dates=['DATE'], index_col=0)
+n_bkps = 5  # number of breakpoints; want 5+
+
+# find
+data = pd.read_csv('RGDPMPUKA.csv', parse_dates=['DATE'])
+data['DATE'] = data['DATE'] - pd.offsets.Day(1)
+data.set_index('DATE', inplace=True)
 
 # detection
 algo = rpt.Dynp(model="l2").fit(data['RGDPMPUKA_PC1'].values)
 result = algo.predict(n_bkps=n_bkps)
 
 # display
-f, ax = rpt.display(data, result, result, computed_chg_pts_linewidth=1)
-ax[0].axes.set_xticklabels([
+f, al = rpt.display(data, result, result, computed_chg_pts_linewidth=1,
+                    figsize=(10, 5))
+ax = al[0]
+ax.axes.set_xticklabels([
     int(t.get_text().replace('−', '-')) + data.index.min().year
-    for t in ax[0].axes.get_xticklabels()]
+    for t in ax.axes.get_xticklabels()]
 )
+
+ax.axhline(0, color='black', linewidth='1')
+
+# add average lines
+for i in range(len(result)):
+    left = 0 if i == 0 else result[i - 1]
+    right = result[i]
+    mean = np.average(data['RGDPMPUKA_PC1'].values[left:right])
+    ax.hlines(mean, left, right,
+              color='black', linewidth=1, linestyle='dashed')
+    
+# add in break point labels
+for index, i in enumerate(np.array(result)):
+    tb = -1 if index % 2 == 0 else 1
+    y = str(i + data.index.min().year)
+    ax.text(i + 2, 20 * tb, y, va='center')
+
+ax.set_ylim(-22, 22)
+ax.set_title('Structural breaks (per ruptures) in UK GDP growth data')
+f.savefig('uk gdp growth structural breaks.svg', bbox_inches='tight')
