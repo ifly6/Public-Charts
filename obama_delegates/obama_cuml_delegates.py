@@ -33,7 +33,9 @@ for c in ['barack_obama', 'hillary_rodham_clinton']:
 
 cumulative_dels = pd.concat([dels['date'], dels['barack_obama'].cumsum(), 
                              dels['hillary_rodham_clinton'].cumsum()], axis=1)
+cumulative_dels = cumulative_dels.groupby('date').max().reset_index()
 cumulative_dels['obama_down_by'] = cumulative_dels.eval('hillary_rodham_clinton - barack_obama')
+
 
 # pictures
 f, a = plt.subplots(1, 1, figsize=(11, 8.5))
@@ -45,3 +47,7 @@ a.legend()
 f1, a1 = plt.subplots(1, 1, figsize=(11, 8.5))
 a1.plot(cumulative_dels['date'], cumulative_dels['obama_down_by'])
 a1.set_title('Barack Obama, down by how many delegates? (Negative means ahead)')
+
+f.savefig('delegates.png')
+f1.savefig('obama.png')
+cumulative_dels.to_csv('cumlt_dels.csv', index=False)
