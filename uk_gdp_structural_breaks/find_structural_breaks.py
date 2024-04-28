@@ -20,7 +20,10 @@ data.set_index('DATE', inplace=True)
 for n_bkps in [1, 3, 5, 7]:
 
     # detection
-    algo = rpt.Dynp(model="l2").fit(data['RGDPMPUKA_PC1'].values)
+    # l1 = median
+    # l2 = mean
+    # rbf = kernel mean change
+    algo = rpt.Dynp(model='rbf').fit(data['RGDPMPUKA_PC1'].values)
     result = algo.predict(n_bkps=n_bkps)
 
     # display
@@ -38,17 +41,18 @@ for n_bkps in [1, 3, 5, 7]:
     for i in range(len(result)):
         left = 0 if i == 0 else result[i - 1]
         right = result[i]
-        mean = np.average(data['RGDPMPUKA_PC1'].values[left:right])
+        mean = np.nanmean(data['RGDPMPUKA_PC1'].values[left:right])
         ax.hlines(mean, left, right,
                   color='black', linewidth=1, linestyle='dashed')
 
     # add in break point labels
-    for index, i in enumerate(np.array(result)):
+    for index, i in enumerate(np.array(result)[:-1]):
         tb = -1 if index % 2 == 0 else 1
         y = str(i + data.index.min().year)
         t = ax.text(i, 20 * tb, y, va='center', ha='center', fontsize=8)
         t.set_bbox(dict(facecolor='white', alpha=1, edgecolor='black'))
 
+    ax.grid(axis='y')
     ax.set_ylim(-22, 22)
     # ax.set_xlim(0, len(data))  # don't use; screws up labels
 
