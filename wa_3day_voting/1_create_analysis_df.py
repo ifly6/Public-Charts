@@ -42,6 +42,7 @@ votes = votes[votes['resolution_id'].isin(last.query('_day == 4').index)]
 d4 = last[['time', 'votes_for', 'votes_against']].copy()
 d4['_tv4'] = d4[['votes_for', 'votes_against']].sum(axis=1)
 d4['_rs4'] = np.where(d4['votes_for'] > d4['votes_against'], 'pass', 'fail')
+d4['_pc4'] = d4['votes_for'] / d4['_tv4']
 
 # construct the day before; create columns and select minimum difference
 # get final
@@ -58,6 +59,7 @@ d1bf = votes.sort_values('_ftm1d').groupby('resolution_id').first()
 d3 = d1bf[['time', '_ftm1d', 'votes_for', 'votes_against']].copy()
 d3['_tv3'] = d3[['votes_for', 'votes_against']].sum(axis=1)
 d3['_rs3'] = np.where(d3['votes_for'] > d3['votes_against'], 'pass', 'fail')
+d3['_pc3'] = d3['votes_for'] / d3['_tv3']
 
 # --------
 # analysis
@@ -72,6 +74,8 @@ day_results['add_prop'] = day_results.eval('(_tv4 - _tv3) / _tv4')
 day_results['res_diff'] = np.where(
     day_results['_rs4'] == day_results['_rs3'],
     'same', 'diff')
+
+day_results['vtf_diff'] = day_results['_pc4'] - day_results['_pc3']
 
 day_results = day_results.join(
     rsltn.set_index('id')[['title', 'chamber', 'resolution_date']])
@@ -111,6 +115,8 @@ sns.histplot(data=day_results, x='add_prop', bins=32) \
     .get_figure().savefig('plots/add_prop_hist.png', bbox_inches='tight')
 
 # run simple regressions
+# nb these regressions are reversed to avoid having to use a logit model ;
+# there should be simultaneous causality
 smf.ols('add_prop ~ res_diff', data=day_results) \
     .fit(cov_type='HC3').summary2()
 """
@@ -159,5 +165,85 @@ Omnibus:              129.223       Durbin-Watson:          1.867
 Prob(Omnibus):        0.000         Jarque-Bera (JB):       236.356
 Skew:                 0.885         Prob(JB):               0.000
 Kurtosis:             4.792         Condition No.:          19
+===================================================================
+"""
+
+# run some more complex resolutions which attempt to find some kind of
+# intensive margin effect on vote differences from add_prop
+smf.ols('vtf_diff ~ add_prop + chamber', data=day_results) \
+    .fit(cov_type='HC3').summary2()
+"""
+                  Results: Ordinary least squares
+===================================================================
+Model:              OLS              Adj. R-squared:     0.013     
+Dependent Variable: vtf_diff         AIC:                -4280.3173
+Date:               2023-02-16 22:31 BIC:                -4265.9302
+No. Observations:   894              Log-Likelihood:     2143.2    
+Df Model:           2                F-statistic:        3.905     
+Df Residuals:       891              Prob (F-statistic): 0.0205    
+R-squared:          0.015            Scale:              0.00048612
+-------------------------------------------------------------------
+                Coef.   Std.Err.     z     P>|z|    [0.025   0.975]
+-------------------------------------------------------------------
+Intercept       0.0080    0.0063   1.2730  0.2030  -0.0043   0.0204
+chamber[T.SC]  -0.0050    0.0023  -2.2249  0.0261  -0.0094  -0.0006
+add_prop       -0.0719    0.0770  -0.9332  0.3507  -0.2229   0.0791
+------------------------------------------------------------------
+Omnibus:            1455.995      Durbin-Watson:         2.014     
+Prob(Omnibus):      0.000         Jarque-Bera (JB):      920811.937
+Skew:               -9.899        Prob(JB):              0.000     
+Kurtosis:           158.974       Condition No.:         48        
+===================================================================
+"""
+
+smf.ols('add_prop ~ abs(vtf_diff) + chamber', data=day_results) \
+    .fit(cov_type='HC3').summary2()
+"""
+                  Results: Ordinary least squares
+===================================================================
+Model:              OLS              Adj. R-squared:     0.120     
+Dependent Variable: add_prop         AIC:                -4228.5553
+Date:               2023-02-16 22:35 BIC:                -4214.1682
+No. Observations:   894              Log-Likelihood:     2117.3    
+Df Model:           2                F-statistic:        35.24     
+Df Residuals:       891              Prob (F-statistic): 1.87e-15  
+R-squared:          0.121            Scale:              0.00051510
+-------------------------------------------------------------------
+                Coef.   Std.Err.     z     P>|z|    [0.025   0.975]
+-------------------------------------------------------------------
+Intercept       0.0802    0.0014  59.1840  0.0000   0.0775   0.0828
+chamber[T.SC]  -0.0113    0.0015  -7.5014  0.0000  -0.0143  -0.0084
+abs(vtf_diff)   0.3145    0.1088   2.8916  0.0038   0.1013   0.5276
+------------------------------------------------------------------
+Omnibus:              116.294       Durbin-Watson:          1.840  
+Prob(Omnibus):        0.000         Jarque-Bera (JB):       213.508
+Skew:                 0.807         Prob(JB):               0.000  
+Kurtosis:             4.769         Condition No.:          55     
+===================================================================
+"""
+
+smf.ols('abs(vtf_diff) ~ add_prop', 
+        data=day_results.query('chamber == "GA"')) \
+    .fit(cov_type='HC3').summary2()
+"""
+                  Results: Ordinary least squares
+===================================================================
+Model:              OLS              Adj. R-squared:     0.134     
+Dependent Variable: abs(vtf_diff)    AIC:                -3279.3451
+Date:               2023-02-16 22:37 BIC:                -3270.9319
+No. Observations:   496              Log-Likelihood:     1641.7    
+Df Model:           1                F-statistic:        28.65     
+Df Residuals:       494              Prob (F-statistic): 1.33e-07  
+R-squared:          0.136            Scale:              7.8416e-05
+-------------------------------------------------------------------
+             Coef.    Std.Err.      z     P>|z|     [0.025   0.975]
+-------------------------------------------------------------------
+Intercept   -0.0033     0.0021   -1.5623  0.1182   -0.0074   0.0008
+add_prop     0.1416     0.0264    5.3528  0.0000    0.0897   0.1934
+-------------------------------------------------------------------
+Omnibus:             365.105       Durbin-Watson:          1.945   
+Prob(Omnibus):       0.000         Jarque-Bera (JB):       6710.335
+Skew:                3.011         Prob(JB):               0.000   
+Kurtosis:            19.983        Condition No.:          41      
 ===================================================================
 """
