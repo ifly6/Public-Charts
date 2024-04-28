@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Feb 16 13:01:03 2023
-
-@author: ifly6
+@author: Imperium Anglorum
 """
 import pandas as pd
 import sqlite3
